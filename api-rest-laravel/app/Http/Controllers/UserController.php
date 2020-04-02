@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
- use\App\User;
+use\App\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller {
@@ -13,12 +13,12 @@ class UserController extends Controller {
 
     public function register(Request $request) {
 
-        $name = $request->input('name');
-        $surname = $request->input('surname');
+        //$name = $request->input('name');
+        //$surname = $request->input('surname');
 
         //Recoger datos del usuario
         $json = $request->input('json', null);
-        var_dump($json);
+        var_dump($request);
 
         $params = json_decode($json); //objeto
         $params_array = json_decode($json, true);
@@ -36,7 +36,7 @@ class UserController extends Controller {
                         'password' => 'required']);
 
             if ($validate->fails()) {
-                return response()->json($validate->errors(), 400);
+                //return response()->json($validate->errors(), 400);
                 $data = array(
                     'status' => 'Success',
                     'code' => 400,
@@ -46,7 +46,7 @@ class UserController extends Controller {
             } else {
 
                 //Cofrar la contraseña
-                $pwd = password_hash($params->password, PASSWORD_BCRYPT, ['cost' => 4]);
+                //$pwd = password_hash($params->password, PASSWORD_BCRYPT, ['cost' => 4]);
                 $pwd = hash('sha256', $params->password);
 
 
@@ -80,29 +80,28 @@ class UserController extends Controller {
                 'message' => 'Los datos enviados no son correctos');
         }
         return response()->json($data, $data['code']);
-        die();
+        
     }
 
     public function login(Request $request) {
         $jwtAuth = new \JwtAuth();
-
         //Recibir datos por Post
-
         $json = $request->input('json', null);
-        $email = 'YoMeLoGuiso@palomo.com';
-       
-        $params = json_decode($json);
+        
+
+        $params = json_decode($json); //objeto
         $params_array = json_decode($json, true);
-
+        //var_dump($request);die();
         //Validar datos
+         $validate = \Validator::make($params_array, [
+                        'password' => 'required',
+                        'email' => 'required|email'
+                        ]);
 
-        $validate = \Validator::make($params_array, [
-                    'email' => 'required|email',
-                    'password' => 'required']);
+        
 
         if ($validate->fails()) {
-            return response()->json($validate->errors(), 400);
-            $data = array(
+            $signup = array(
                 'status' => 'error',
                 'code' => 400,
                 'message' => 'El usuario sno se ha podido lograr',
@@ -120,7 +119,17 @@ class UserController extends Controller {
              }
             
         }
-        return $jwtAuth->signup($email, $pwd);
+        return response()->json($signup,200);
+    }
+    public function update(Request $request){
+        $token = $request->header('Autorization');
+        $jwtAuth = new \JwtAuth();
+        $checkToken = $jwtAuth->checkToken($token);
+        if($checkToken){
+            echo "<h1> Loggin correcto</h1>";
+        }else{
+            echo "<h1> Loggin incorrecto</h1>";
+        }
     }
 
 }
